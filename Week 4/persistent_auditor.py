@@ -85,6 +85,11 @@ def add_order(history_list, product_name, quantity):
     history_list.append(new_item)
     return new_item
 
+#Load Inventory
+def load_inventory(file_name):
+    raw_data = persistence(file_name)
+    return history_tracking(raw_data)
+
 #Save Inventory
 def save_inventory(file_name, history_list):
     with open(file_name, "w") as f:
@@ -92,8 +97,7 @@ def save_inventory(file_name, history_list):
             f.write(f"{item[0]}, {item[1]}, {item[2]}\n")
 
 
-inventory = persistence(file_name)
-history = history_tracking(inventory)
+history = load_inventory(file_name)
 print_current_orders(history)
 
 while quit != 1:
