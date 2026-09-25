@@ -18,21 +18,18 @@ def get_valid_input(quantity):
             fail += 1
             quantity = input("Enter Quantity: ").strip()
     
-'''def process_delivery(current_total, new_value):
+def check_quantity_max(history_list, new_quantity):
     global fail
-    global stock
 
-    if current_total + new_value <= 500:
-        current_total = current_total + new_value
-        print("Current inventory:", current_total)
-        return current_total
+    current_total = sum(item[2] for item in history_list)
+    if current_total + new_quantity <= 500:
+        return True
     else:
         print("Inventory limit exceeded. Cannot add more stock.")
         fail += 1
-        stock = "quit"
-    return current_total
+        return False
 
-def calculate_tax(amount):
+'''def calculate_tax(amount):
     tax_rate = 0.10
     tax_amount = amount * tax_rate
     return tax_amount
@@ -113,12 +110,13 @@ while quit != 1:
     if quit == 1 or valid_quantity == "quit":
         break
 
-    new_item = add_order(history, product_name, valid_quantity)
-    print(f"New Order Added: {new_item[0]},{product_name},{valid_quantity}")
+    if check_quantity_max(history, valid_quantity):
+        new_item = add_order(history, product_name, valid_quantity)
+        print(f"New Order Added: {new_item[0]},{product_name},{valid_quantity}")
 
 if len(history) > 0:
     save_inventory(file_name, history)
-    print("Order successfully saved to inventory.txt")
+    print("All orders successfully saved to inventory.txt")
 
 #Eugene Repo URL: https://github.com/Eugene2603188/Lab4
 
