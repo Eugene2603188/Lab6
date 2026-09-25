@@ -1,31 +1,9 @@
 fail = 0
-stock = 0
-
-#Persistence
-file_name = "inventory.txt"
-
-try:
-    with open(file_name, "r") as f:
-        inventory = f.read()
-except FileNotFoundError:
-    inventory = ""
-
-#History Tracking
+user_input = 0
+file_name = "Week 4/inventory.txt"
 history = []
 
-if inventory != "":
-    for line in inventory.splitlines():
-        line = line.strip()
-        if line != "":
-            parts = line.split(",")
-            item_id = int(parts[0].strip())
-            name = parts[1].strip()
-            quantity = int(parts[2].strip())
-
-            history.append([item_id, name, quantity])
-
-
-def get_valid_input():
+'''def get_valid_input():
     global fail
     global stock
 
@@ -61,11 +39,49 @@ def calculate_tax(amount):
     
 def generate_report(inventory, fail):
     print("Total Unit Processed:", inventory)
-    print("Number of Failed/Rejected Entries:", fail)
+    print("Number of Failed/Rejected Entries:", fail)'''
 
-while (stock != "quit"):
-    stock = input("Enter stock quantity: ")
-    if stock == "quit":
+def print_current_orders(list_of_orders):
+    for item in list_of_orders:
+        print(item[0], item[1], item[2])
+    else:
+        print("No current orders found.")
+
+#Persistence
+def persistence(file_name):
+    try:
+        with open(file_name, "r") as f:
+            inventory = f.read()
+            return inventory
+    except FileNotFoundError:
+        inventory = ""
+        return inventory
+
+#History Tracking
+def history_tracking(inventory_data):
+    parsed_history = []
+    if inventory_data != "":
+        for line in inventory_data.splitlines():
+            line = line.strip()
+            if line != "":
+                parts = line.split(",")
+                item_id = int(parts[0].strip())
+                name = parts[1].strip()
+                quantity = int(parts[2].strip())
+
+                parsed_history.append([item_id, name, quantity])
+    return parsed_history
+
+
+inventory = persistence(file_name)
+history = history_tracking(inventory)
+print_current_orders(history)
+
+while (user_input != "quit"):
+    product_name = input("Enter product name: ")
+    quantity = input("Enter quantity: ")
+
+    if user_input == "quit":
         break
     get_valid_input()
     inventory = process_delivery(int(inventory), int(stock))
