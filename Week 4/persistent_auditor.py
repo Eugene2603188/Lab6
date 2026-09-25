@@ -1,24 +1,24 @@
 fail = 0
-user_input = 0
+quit = 0
 file_name = "Week 4/inventory.txt"
 history = []
 
-'''def get_valid_input():
+def get_valid_input(quantity):
     global fail
-    global stock
+    global quit
 
-    if stock.isdigit():
-        return stock
-    else:
-        if stock != "quit":
-            print("Invalid input. Please enter a positive number or 'quit' to exit.")
-            fail = fail + 1
-            stock = 0
+    while True:
+        if quantity.lower() == "quit":
+            quit = 1
+            return "quit"
+        elif quantity.isdigit():
+            return int(quantity)
         else:
-            stock = "quit"
-        return stock
+            print("Invalid input. Please enter a positive number or 'quit' to exit.")
+            fail += 1
+            quantity = input("Enter Quantity: ").strip()
     
-def process_delivery(current_total, new_value):
+'''def process_delivery(current_total, new_value):
     global fail
     global stock
 
@@ -78,14 +78,17 @@ inventory = persistence(file_name)
 history = history_tracking(inventory)
 print_current_orders(history)
 
-while (user_input != "quit"):
-    product_name = input("Enter product name: ")
-    quantity = input("Enter quantity: ")
-
-    if user_input == "quit":
+while quit != 1:
+    product_name = input("Enter Product Name: ").strip()
+    if product_name.lower() == "quit":
+        quit = 1
         break
-    get_valid_input()
-    inventory = process_delivery(int(inventory), int(stock))
+
+    quantity = input("Enter Quantity: ").strip()
+    valid_quantity = get_valid_input(quantity)
+
+    if quit == 1 or valid_quantity == "quit":
+        break
 
 generate_report(inventory, fail)
 
