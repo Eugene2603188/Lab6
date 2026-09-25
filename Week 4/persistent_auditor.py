@@ -1,18 +1,28 @@
 fail = 0
 stock = 0
 
+
 #Persistence
 file_name= "inventory.txt"
+inventory = []
 
 try:
     with open(file_name, "r") as f:
-        read_value = f.read().strip()
-        if read_value == "":
-            inventory = 0
-        else:
-            inventory = int(read_value)
+        for line in f:
+            line = line.strip()
+            if line != "":
+                parts = line.split(",")
+                item_id = int(parts[0].strip())
+                name = parts[1].strip()
+                quantity = int(parts[2].strip())
+
+                inventory.append([item_id, name, quantity])
 except FileNotFoundError:
-    inventory = 0
+    inventory = []  
+
+#History Tracking
+history = []
+
 
 def get_valid_input():
     global fail
@@ -35,7 +45,7 @@ def process_delivery(current_total, new_value):
 
     if current_total + new_value <= 500:
         current_total = current_total + new_value
-        print("current inventory:", current_total)
+        print("Current inventory:", current_total)
         return current_total
     else:
         print("Inventory limit exceeded. Cannot add more stock.")
