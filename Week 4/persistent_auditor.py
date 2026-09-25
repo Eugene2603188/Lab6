@@ -42,10 +42,11 @@ def generate_report(inventory, fail):
     print("Number of Failed/Rejected Entries:", fail)'''
 
 def print_current_orders(list_of_orders):
-    for item in list_of_orders:
-        print(item[0], item[1], item[2])
-    else:
+    if list_of_orders== []:
         print("No current orders found.")
+    else:
+        for item in list_of_orders:
+            print(item[0], item[1], item[2])
 
 #Persistence
 def persistence(file_name):
