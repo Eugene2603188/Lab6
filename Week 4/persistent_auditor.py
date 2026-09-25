@@ -93,9 +93,10 @@ def save_inventory(file_name, history_list):
         for item in history_list:
             f.write(f"{item[0]}, {item[1]}, {item[2]}\n")
 
-
+print("Current Orders:\n")
 history = load_inventory(file_name)
 print_current_orders(history)
+print("\n")
 
 while quit != 1:
     product_name = input("Enter Product Name: ").strip()
@@ -112,7 +113,7 @@ while quit != 1:
 
     if check_quantity_max(history, valid_quantity):
         new_item = add_order(history, product_name, valid_quantity)
-        print(f"New Order Added: {new_item[0]},{product_name},{valid_quantity}")
+        print(f"New Order Added:\n{new_item[0]},{product_name},{valid_quantity}\n")
 
 if len(history) > 0:
     save_inventory(file_name, history)
