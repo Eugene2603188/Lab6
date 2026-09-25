@@ -73,6 +73,24 @@ def history_tracking(inventory_data):
                 parsed_history.append([item_id, name, quantity])
     return parsed_history
 
+def get_next_id(history_list):
+    if len(history_list) > 0:
+        return history_list[-1][0] + 1
+    else:
+        return 1001
+
+def add_order(history_list, product_name, quantity):
+    next_id = get_next_id(history_list)
+    new_item = [next_id, product_name, quantity]
+    history_list.append(new_item)
+    return new_item
+
+#Save Inventory
+def save_inventory(file_name, history_list):
+    with open(file_name, "w") as f:
+        for item in history_list:
+            f.write(f"{item[0]}, {item[1]}, {item[2]}\n")
+
 
 inventory = persistence(file_name)
 history = history_tracking(inventory)
@@ -80,6 +98,7 @@ print_current_orders(history)
 
 while quit != 1:
     product_name = input("Enter Product Name: ").strip()
+
     if product_name.lower() == "quit":
         quit = 1
         break
@@ -90,7 +109,12 @@ while quit != 1:
     if quit == 1 or valid_quantity == "quit":
         break
 
-generate_report(inventory, fail)
+    new_item = add_order(history, product_name, valid_quantity)
+    print(f"New Order Added: {new_item[0]},{product_name},{valid_quantity}")
+
+if len(history) > 0:
+    save_inventory(file_name, history)
+    print("Order successfully saved to inventory.txt")
 
 #Eugene Repo URL: https://github.com/Eugene2603188/Lab4
 
