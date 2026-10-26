@@ -104,12 +104,6 @@ def get_valid_input(quantity):
             fail += 1
             quantity = input("Enter Quantity: ").strip()
 
-def get_next_id(history_list):
-    if len(history_list) > 0:
-        return history_list[-1]["id"] + 1
-    else:
-        return 1001
-
 #Reads the JSON file into dict
 def read_json(file_name):
     try:
