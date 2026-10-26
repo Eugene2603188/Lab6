@@ -92,7 +92,8 @@ class MainProgram:
     def __init__(self, file_name):
         self.file_name = file_name
         self.inventory = Inventory()
-        FileHandling.load_inventory(file_name, self.inventory)
+        self.file_handler = FileHandling()
+        self.file_handler.load_inventory(file_name, self.inventory)
 
     def display_welcome(self):
         print("\n========================================")
@@ -243,7 +244,7 @@ class MainProgram:
             print("Product not found.\n")
 
     def handle_save_inventory(self):
-        FileHandling.save_inventory(self.file_name, self.inventory)
+        self.file_handler.save_inventory(self.file_name, self.inventory)
         print("Saving inventory...")
         print(f"Inventory saved successfully to {self.file_name}\n")
 
@@ -272,65 +273,39 @@ class MainProgram:
             else:
                 print("Invalid choice. Please select from 1 to 6.")
 
-def get_valid_input(quantity):
-    global fail
-    global quit
+class FileHandling:
+    """Loads inventory data from JSON and saves inventory data to JSON."""
 
-    while True:
-        if quantity.lower() == "quit":
-            quit = 1
-            return "quit"
-        elif quantity.isdigit():
-            return int(quantity)
-        else:
-            print("Invalid input. Please enter a positive number or 'quit' to exit.")
-            fail += 1
-            quantity = input("Enter Quantity: ").strip()
+    def load_inventory(self, file_name, inventory_obj):
+        """Load products from JSON file into Inventory object as Product instances."""
+        try:
+            with open(file_name, "r") as f:
+                data = json.load(f)
+                for item in data:
+                    inventory_obj.add_product(item["id"], item["name"], item["price"], item["quantity"])
+        except FileNotFoundError:
+            pass
+        except json.JSONDecodeError:
+            pass
 
-#Reads the JSON file into dict
-def read_json(file_name):
-    try:
-        with open(file_name, "r") as f:
-            return json.load(f)  # Automatically parses JSON back into a list of dictionaries
-    except FileNotFoundError:
-        return []
-    except json.JSONDecodeError:
-        # Handles case if file exists but is empty/corrupted
-        return []
-    
-#All the dict shit from JSON file to Product objects
-def load_product_objects(file_name, inventory_obj):
-    """Load products from JSON file into Inventory object as Product instances."""
-    data = read_json(file_name)  # Calls Function 1
-    for item in data:
-        # Convert dictionary → Product object
-        product = Product(item["id"], item["name"], item["price"], item["quantity"])
-        # Add Product object to Inventory
-        inventory_obj._Inventory__products.append(product)
+    def save_inventory(self, file_name, inventory_obj):
+        """Convert Product objects to dictionaries and save to JSON."""
+        try:
+            products_data = []
+            for product in inventory_obj.get_products():
+                products_data.append({
+                    "id": product.get_id(),
+                    "name": product.get_name(),
+                    "price": product.get_price(),
+                    "quantity": product.get_quantity()
+                })
+            with open(file_name, "w") as f:
+                json.dump(products_data, f, indent=4)
+        except Exception as e:
+            print(f"Error saving file: {e}\n")
 
-#Saves the Product objects to JSON file
-def save_product_objects_to_json(file_name, inventory_obj):
-    """Convert Product objects to dictionaries and save to JSON."""
-    try:
-        products_data = []
-        for product in inventory_obj._Inventory__products:  # Loop through Product objects
-            # Extract data from each Product using getters
-            products_data.append({
-                "id": product.get_id(),
-                "name": product.get_name(),
-                "price": product.get_price(),
-                "quantity": product.get_quantity()
-            })
-        # Save list of dictionaries to JSON file
-        with open(file_name, "w") as f:
-            json.dump(products_data, f, indent=4)
-    except Exception as e:
-        print(f"Error saving file: {e}\n")
 
 #---- THE MENU SHIT -----
-inventory = Inventory()
-load_product_objects(file_name, inventory)
-
 if __name__ == "__main__":
     program = MainProgram(file_name)
     program.run()
