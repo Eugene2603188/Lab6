@@ -42,6 +42,10 @@ class Inventory:
     def __init__(self):
         """Constructor - initialize an empty product list."""
         self.__products = []
+
+    def get_total_stock(self):
+        """Return total quantity of all products in inventory."""
+        return sum(product.get_quantity() for product in self.__products)
     
     def add_product(self, product_id, name, price, quantity):
         """Add a new product to the inventory."""
@@ -99,17 +103,6 @@ def get_valid_input(quantity):
             print("Invalid input. Please enter a positive number or 'quit' to exit.")
             fail += 1
             quantity = input("Enter Quantity: ").strip()
-    
-def check_quantity_max(history_list, new_quantity):
-    global fail
-
-    current_total = sum(item["quantity"] for item in history_list)
-    if current_total + new_quantity <= 500:
-        return True
-    else:
-        print("Inventory limit exceeded. Cannot add more stock.")
-        fail += 1
-        return False
 
 def get_next_id(history_list):
     if len(history_list) > 0:
@@ -190,7 +183,11 @@ while True:
         valid_quantity = get_valid_input(raw_qty)
         
         if valid_quantity != "quit":
-            inventory.add_product(product_id, product_name, price, valid_quantity)
+            current_total = inventory.get_total_stock()
+            if current_total + valid_quantity <= 500:
+                inventory.add_product(product_id, product_name, price, valid_quantity)
+            else:
+                print(f"Current stock: {current_total} | Limit: 500 | Available space: {500 - current_total}")
 
     elif choice == "3":
         print("\nUpdate Stock")
@@ -209,8 +206,15 @@ while True:
             valid_quantity = get_valid_input(raw_qty)
             
             if valid_quantity != "quit":
-                inventory.update_product_stock(search_term, valid_quantity)
-                print("\nStock updated successfully!")
+                current_total = inventory.get_total_stock()
+                old_quantity = product.get_quantity()
+                new_total = current_total - old_quantity + valid_quantity
+                
+                if new_total <= 500:
+                    inventory.update_product_stock(search_term, valid_quantity)
+                    print("\nStock updated successfully!")
+                else:
+                    print(f"Current stock (excl. this product): {current_total - old_quantity} | New quantity: {valid_quantity} | Total would be: {new_total} | Limit: 500")
         else:
             print("Product not found.")
             
