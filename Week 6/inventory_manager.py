@@ -99,16 +99,6 @@ def get_next_id(history_list):
         return 1001
 
 #---- ALL DATA MANIPULATION FUNCTIONS -----
-#Data Manipulation - Replaced previously print_current_orders()
-def display_all(inventory):
-    print("\nCurrent Inventory")
-    print("----------------------------------------")
-    if not inventory:
-        print("No items in inventory.")
-    else:
-        for item in inventory:
-            print(f"ID: P{item['id']} | Name: {item['name']} | Price: ${item['price']:.2f} | Stock: {item['quantity']}")
-    print("----------------------------------------")
 
 #Data Manipulation - Replaced previously add_order()
 def add_product(inventory, product_id, product_name, price, quantity):
@@ -161,8 +151,8 @@ def search_product(inventory, search_term):
         print("Product not found.\n")
 
 #---- ALL DATA PERSISTENCE FUNCTIONS -----
-#Data Persistence - Replaced previously persistence() + history_tracking() + load_inventory()
-def load_inventory(file_name):
+#Reads the JSON file into dict
+def read_json(file_name):
     try:
         with open(file_name, "r") as f:
             return json.load(f)  # Automatically parses JSON back into a list of dictionaries
@@ -173,16 +163,38 @@ def load_inventory(file_name):
         # Handles case if file exists but is empty/corrupted
         return []
     
-#Data Persistence - Replaced previously save_inventory()
-def save_inventory(file_name, history_list):
+#All the dict shit from JSON file to Product objects
+def load_product_objects(file_name, inventory_obj):
+    """Load products from JSON file into Inventory object as Product instances."""
+    data = read_json(file_name)  # Calls Function 1
+    for item in data:
+        # Convert dictionary → Product object
+        product = Product(item["id"], item["name"], item["price"], item["quantity"])
+        # Add Product object to Inventory
+        inventory_obj.add_product(product)
+
+#Saves the Product objects to JSON file
+def save_product_objects_to_json(file_name, inventory_obj):
+    """Convert Product objects to dictionaries and save to JSON."""
     try:
+        products_data = []
+        for product in inventory_obj.get_products():  # Loop through Product objects
+            # Extract data from each Product using getters
+            products_data.append({
+                "id": product.get_id(),
+                "name": product.get_name(),
+                "price": product.get_price(),
+                "quantity": product.get_quantity()
+            })
+        # Save list of dictionaries to JSON file
         with open(file_name, "w") as f:
-            json.dump(history_list, f, indent=4)
+            json.dump(products_data, f, indent=4)
     except Exception as e:
         print(f"Error saving file: {e}\n")
 
 #---- THE MENU SHIT -----
-history = load_inventory(file_name)
+inventory = Inventory()
+load_products_into_inventory("inventory.json", inventory)
 
 print("\n========================================")
 print("\nINVENTORY MANAGER SYSTEM")
@@ -200,7 +212,7 @@ while True:
     choice = input("Enter option: ").strip()
 
     if choice == "1":
-        display_all(history)
+        inventory.display_all()
 
     elif choice == "2":
         print("\nAdd New Product")
