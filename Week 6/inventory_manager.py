@@ -1,9 +1,6 @@
 import json
 
-fail = 0
-quit = 0
 file_name = "inventory.json"
-history = []
 
 class Product:
     """Represents a single product in the inventory."""
