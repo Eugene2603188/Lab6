@@ -36,6 +36,36 @@ class Product:
     def get_quantity(self):
         return self.__quantity
 
+class Inventory:
+    """Manages a collection of products in the inventory."""
+    
+    def __init__(self):
+        """Constructor - initialize an empty product list."""
+        self.__products = []
+    
+    def add_product(self, product):
+        """Add a product to the inventory."""
+        self.__products.append(product)
+    
+    def search_product(self, product_id):
+        """Search for a product by ID. Returns the product or None if not found."""
+        for product in self.__products:
+            if product.get_product_id() == product_id:
+                return product
+        return None
+    
+    def display_all(self):
+        """Display all products in the inventory."""
+        if not self.__products:
+            print("Inventory is empty.")
+        else:
+            for product in self.__products:
+                product.display_information()
+    
+    def get_products(self):
+        """Return the list of all products."""
+        return self.__products
+
 def get_valid_input(quantity):
     global fail
     global quit
