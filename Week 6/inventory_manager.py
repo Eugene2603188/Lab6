@@ -43,14 +43,15 @@ class Inventory:
         """Constructor - initialize an empty product list."""
         self.__products = []
     
-    def add_product(self, product):
-        """Add a product to the inventory."""
+    def add_product(self, product_id, name, price, quantity):
+        """Add a new product to the inventory."""
+        product = Product(product_id, name, price, quantity)
         self.__products.append(product)
+        print("\nProduct added successfully")
     
     def search_product(self, product_id):
-        """Search for a product by ID. Returns the product or None if not found."""
         for product in self.__products:
-            if product.get_product_id() == product_id:
+            if product.get_id() == product_id:
                 return product
         return None
     
@@ -99,19 +100,6 @@ def get_next_id(history_list):
         return 1001
 
 #---- ALL DATA MANIPULATION FUNCTIONS -----
-
-#Data Manipulation - Replaced previously add_order()
-def add_product(inventory, product_id, product_name, price, quantity):
-    new_product = {
-        "id": product_id,
-        "name": product_name,
-        "price": price,
-        "quantity": quantity
-    }
-    inventory.append(new_product)
-    print("\nProduct added successfully")
-    return new_product
-
 #Data Manipulation - update_stock()
 def update_stock(inventory, search_term, new_quantity):
     found = False
@@ -128,27 +116,6 @@ def update_stock(inventory, search_term, new_quantity):
             
     if not found:
         print(f"Product '{search_term}' not found in inventory.")
-
-#Data Manipulation - search_product()
-def search_product(inventory, search_term):
-    found_items = []
-    clean_term = search_term.lstrip("Pp").strip()
-    
-    for item in inventory:
-        if str(item["id"]) == str(clean_term) or clean_term.lower() in item["name"].lower():
-            found_items.append(item)
-            
-    if found_items:
-        print("\nProduct Found")
-        print("\n------------------------------------------------")
-        for item in found_items:
-            print(f"ID: {item['id']}")
-            print(f"Name: {item['name']}")
-            print(f"Price: ${item['price']:.2f}")
-            print(f"Quantity: {item['quantity']}")
-        print("------------------------------------------------\n")
-    else:
-        print("Product not found.\n")
 
 #---- ALL DATA PERSISTENCE FUNCTIONS -----
 #Reads the JSON file into dict
@@ -217,17 +184,14 @@ while True:
     elif choice == "2":
         print("\nAdd New Product")
         raw_id = input("Product ID: ").strip()
-
-        #Remove 'P' or 'p' prefix if user inputs "P1001" instead of "1001"
-        product_id = raw_id.lstrip("Pp")
-        
+        product_id = int(raw_id.lstrip("Pp"))
         product_name = input("Product Name: ").strip()
         price = float(input("Price: ").strip())
         raw_qty = input("Stock Quantity: ").strip()
         valid_quantity = get_valid_input(raw_qty)
         
-        if valid_quantity != "quit" and check_quantity_max(history, valid_quantity):
-            add_product(history, product_id, product_name, price, valid_quantity)
+        if valid_quantity != "quit":
+            inventory.add_product(product_id, product_name, price, valid_quantity)
 
     elif choice == "3":
         print("\nUpdate Stock")
@@ -258,7 +222,6 @@ while True:
                 print("\nStock updated successfully!")
         else:
             print("Product not found.")
-        
         
         if valid_quantity != "quit":
             update_stock(history, search_term, valid_quantity)
