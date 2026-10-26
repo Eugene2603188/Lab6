@@ -194,7 +194,7 @@ def save_product_objects_to_json(file_name, inventory_obj):
 
 #---- THE MENU SHIT -----
 inventory = Inventory()
-load_products_into_inventory("inventory.json", inventory)
+load_product_objects("inventory.json", inventory)
 
 print("\n========================================")
 print("\nINVENTORY MANAGER SYSTEM")
