@@ -266,14 +266,14 @@ while True:
     elif choice == "4":
         search_term = input("Search Product ID: ").strip()
         search_product(history, search_term)
-
+    
     elif choice == "5":
-        save_inventory(file_name, history)
+        save_product_objects_to_json(file_name, inventory)
         print("\nSaving inventory...")
         print(f"Inventory saved successfully to {file_name}\n")
-    
+
     elif choice == "6":
-        save_inventory(file_name, history)
+        save_product_objects_to_json(file_name, inventory) 
         print("\nSaving inventory before exit...")
         print("Inventory saved successfully.\n")
         print("Thank you for using Inventory Management System.")
