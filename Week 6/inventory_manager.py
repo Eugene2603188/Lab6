@@ -1,13 +1,14 @@
 import json
+import os
 
-file_name = "inventory.json"
+file_name = "Week 6/inventory.json"
 
 class Product:
     """Represents a single product in the inventory."""
     
     def __init__(self, product_id, name, price, quantity):
         """Constructor - initialize a product with its attributes."""
-        self.__product_id = product_id
+        self.__product_id = str(product_id)
         self.__name = name
         self.__price = price
         self.__quantity = quantity
@@ -48,7 +49,6 @@ class Inventory:
         """Add a new product to the inventory."""
         product = Product(product_id, name, price, quantity)
         self.__products.append(product)
-        print("\nProduct added successfully")
     
     def search_product_by_term(self, search_term):
         """Search for products by ID or name. Returns list of matching products."""
@@ -107,7 +107,6 @@ def read_json(file_name):
         with open(file_name, "r") as f:
             return json.load(f)  # Automatically parses JSON back into a list of dictionaries
     except FileNotFoundError:
-        print(f"{file_name} not found. Starting with an empty inventory.")
         return []
     except json.JSONDecodeError:
         # Handles case if file exists but is empty/corrupted
@@ -121,14 +120,14 @@ def load_product_objects(file_name, inventory_obj):
         # Convert dictionary → Product object
         product = Product(item["id"], item["name"], item["price"], item["quantity"])
         # Add Product object to Inventory
-        inventory_obj.add_product(product)
+        inventory_obj._Inventory__products.append(product)
 
 #Saves the Product objects to JSON file
 def save_product_objects_to_json(file_name, inventory_obj):
     """Convert Product objects to dictionaries and save to JSON."""
     try:
         products_data = []
-        for product in inventory_obj.get_products():  # Loop through Product objects
+        for product in inventory_obj._Inventory__products:  # Loop through Product objects
             # Extract data from each Product using getters
             products_data.append({
                 "id": product.get_id(),
@@ -144,11 +143,18 @@ def save_product_objects_to_json(file_name, inventory_obj):
 
 #---- THE MENU SHIT -----
 inventory = Inventory()
-load_product_objects("inventory.json", inventory)
+load_product_objects(file_name, inventory)
 
 print("\n========================================")
 print("\nINVENTORY MANAGER SYSTEM")
 print("\n========================================")
+
+if inventory.get_products():
+    print("\ninventory.json found.")
+    print("Inventory loaded successfully.\n")
+else:
+    print("\ninventory.json not found.")
+    print("Starting with an empty inventory.\n")
 
 while True:
     print("\n----------- MENU -----------")
@@ -166,19 +172,72 @@ while True:
 
     elif choice == "2":
         print("\nAdd New Product")
-        raw_id = input("Product ID: ").strip()
-        product_id = int(raw_id.lstrip("Pp"))
+        #Input 1: Get Product ID - must be number
+        while True:
+            try:
+                raw_id = input("Product ID: ").strip()
+                product_id = raw_id.lstrip("Pp")
+                if not product_id:  # Check if empty
+                    print("Invalid ID. Please enter a valid product ID.")
+                    continue
+                if not product_id.isdigit(): # Check if number
+                    print("Invalid ID. ID must contain only numbers (0-9)")
+                    continue
+                break
+            except:
+                print("Invalid input. Please enter a valid product ID.")
+        product_id = raw_id.lstrip("Pp")
+
+        #Input 2: Get Product Name
         product_name = input("Product Name: ").strip()
-        price = float(input("Price: ").strip())
-        raw_qty = input("Stock Quantity: ").strip()
-        valid_quantity = get_valid_input(raw_qty)
-        
-        if valid_quantity != "quit":
+
+
+        #Input 3: Get Price - must be number, no negative
+        while True:
+            try:
+                price = float(input("Price: ").strip())
+                if price < 0:
+                    print("Price cannot be negative. Please enter a valid price.")
+                    continue
+                break
+            except ValueError:
+                print("Invalid input. Please enter a valid price (e.g., 9.99)")
+                
+        #Input 4: Get Stock Quantity - must be number, check 500 limit
+        while True:
+            qty_input = input("Stock Quantity: ").strip()
+            
+            if qty_input.lower() == "quit":
+                print("Cancelled.")
+                break
+            
+            if not qty_input.isdigit():
+                print("Invalid input. Quantity must be a positive number.")
+                continue
+            
+            valid_quantity = int(qty_input)
+            
+            if valid_quantity <= 0:
+                print("Quantity must be greater than 0.")
+                continue
+            
+            if valid_quantity > 500:
+                print(f"Quantity cannot exceed 500. You entered: {valid_quantity}")
+                continue
+            
+            # Check if adding this quantity exceeds total 500 limit
             current_total = inventory.get_total_stock()
-            if current_total + valid_quantity <= 500:
-                inventory.add_product(product_id, product_name, price, valid_quantity)
-            else:
-                print(f"Current stock: {current_total} | Limit: 500 | Available space: {500 - current_total}")
+            new_total = current_total + valid_quantity
+            
+            if new_total > 500:
+                print(f"Cannot add {valid_quantity} units.")
+                print(f"Current stock: {current_total} | Max allowed: 500 | Available space: {500 - current_total}")
+                continue
+            
+            # All valid! Add product
+            inventory.add_product(product_id, product_name, price, valid_quantity)
+            print(f"\nProduct added successfully!")
+            break
 
     elif choice == "3":
         print("\nUpdate Stock")
