@@ -86,6 +86,192 @@ class Inventory:
         """Return the list of all products."""
         return self.__products
 
+class MainProgram:
+    """Displays the menu, gets user input, calls the appropriate Inventory methods."""
+
+    def __init__(self, file_name):
+        self.file_name = file_name
+        self.inventory = Inventory()
+        FileHandling.load_inventory(file_name, self.inventory)
+
+    def display_welcome(self):
+        print("\n========================================")
+        print("\nINVENTORY MANAGER SYSTEM")
+        print("\n========================================")
+
+        if self.inventory.get_products():
+            print("\ninventory.json found.")
+            print("Inventory loaded successfully.\n")
+        else:
+            print("\ninventory.json not found.")
+            print("Starting with an empty inventory.\n")
+
+    def display_menu(self):
+        print("\n----------- MENU -----------")
+        print("1. Display All Products")
+        print("2. Add Product")
+        print("3. Update Stock")
+        print("4. Search Product")
+        print("5. Save Inventory")
+        print("6. Exit")
+
+    def handle_display_all(self):
+        self.inventory.display_all()
+
+    def handle_add_product(self):
+        print("\nAdd New Product")
+        
+        # INPUT 1: Get and validate Product ID - must be numbers only
+        while True:
+            try:
+                raw_id = input("Product ID: ").strip()
+                product_id = raw_id.lstrip("Pp")
+                
+                if not product_id:
+                    print("Invalid ID. Please enter a valid product ID.")
+                    continue
+                
+                if not product_id.isdigit():
+                    print("Invalid ID. ID must contain only numbers (0-9)")
+                    continue
+                
+                break
+            except:
+                print("Invalid input. Please enter a valid product ID.")
+
+        # INPUT 2: Get Product Name
+        product_name = input("Product Name: ").strip()
+
+        # INPUT 3: Get and validate Price - must be a number, not negative
+        while True:
+            try:
+                price = float(input("Price: ").strip())
+                if price < 0:
+                    print("Price cannot be negative. Please enter a valid price.")
+                    continue
+                break
+            except ValueError:
+                print("Invalid input. Please enter a valid price (e.g., 9.99)")
+
+        # INPUT 4: Get and validate Stock Quantity - must be number, check 500 limit
+        while True:
+            qty_input = input("Stock Quantity: ").strip()
+
+            if qty_input.lower() == "quit":
+                print("Cancelled.")
+                break
+
+            if not qty_input.isdigit():
+                print("Invalid input. Quantity must be a positive number.")
+                continue
+
+            valid_quantity = int(qty_input)
+
+            if valid_quantity <= 0:
+                print("Quantity must be greater than 0.")
+                continue
+
+            if valid_quantity > 500:
+                print(f"Quantity cannot exceed 500. You entered: {valid_quantity}")
+                continue
+
+            current_total = self.inventory.get_total_stock()
+            new_total = current_total + valid_quantity
+
+            if new_total > 500:
+                print(f"Cannot add {valid_quantity} units.")
+                print(f"Current stock: {current_total} | Max allowed: 500 | Available space: {500 - current_total}")
+                continue
+
+            self.inventory.add_product(product_id, product_name, price, valid_quantity)
+            print("Product added successfully!")
+            break
+
+    def handle_update_stock(self):
+        print("\nUpdate Stock")
+        search_term = input("Enter Product ID or Name: ").strip()
+
+        found_items = self.inventory.search_product_by_term(search_term)
+
+        if found_items:
+            product = found_items[0]
+            print("\nProduct Found:")
+            product.display_information()
+
+            while True:
+                raw_qty = input("\nNew Stock Quantity: ").strip()
+
+                if raw_qty.lower() == "quit":
+                    print("Cancelled.")
+                    break
+
+                if not raw_qty.isdigit():
+                    print("Invalid input. Please enter a positive number.")
+                    continue
+
+                valid_quantity = int(raw_qty)
+
+                if valid_quantity <= 0:
+                    print("Quantity must be greater than 0.")
+                    continue
+
+                current_total = self.inventory.get_total_stock()
+                old_quantity = product.get_quantity()
+                new_total = current_total - old_quantity + valid_quantity
+
+                if new_total <= 500:
+                    self.inventory.update_product_stock(search_term, valid_quantity)
+                    print("Stock updated successfully!")
+                    break
+                else:
+                    print(f"Current stock (excl. this product): {current_total - old_quantity} | New quantity: {valid_quantity} | Total would be: {new_total} | Limit: 500")
+
+        else:
+            print("Product not found.")
+
+    def handle_search_product(self):
+        search_term = input("Search Product ID: ").strip()
+        found_items = self.inventory.search_product_by_term(search_term)
+
+        if found_items:
+            print("\nProduct Found")
+            print("\n------------------------------------------------")
+            for product in found_items:
+                product.display_information()
+            print("------------------------------------------------\n")
+        else:
+            print("Product not found.\n")
+
+    def handle_save_inventory(self):
+        FileHandling.save_inventory(self.file_name, self.inventory)
+        print("Saving inventory...")
+        print(f"Inventory saved successfully to {self.file_name}\n")
+
+    def run(self):
+        self.display_welcome()
+
+        while True:
+            self.display_menu()
+            choice = input("Enter option: ").strip()
+
+            if choice == "1":
+                self.handle_display_all()
+            elif choice == "2":
+                self.handle_add_product()
+            elif choice == "3":
+                self.handle_update_stock()
+            elif choice == "4":
+                self.handle_search_product()
+            elif choice == "5":
+                self.handle_save_inventory()
+            elif choice == "6":
+                self.handle_save_inventory()
+                print("Thank you for using Inventory Management System.")
+                print("Program terminated.")
+                break
+            else:
+                print("Invalid choice. Please select from 1 to 6.")
+
 def get_valid_input(quantity):
     global fail
     global quit
@@ -145,157 +331,9 @@ def save_product_objects_to_json(file_name, inventory_obj):
 inventory = Inventory()
 load_product_objects(file_name, inventory)
 
-print("\n========================================")
-print("\nINVENTORY MANAGER SYSTEM")
-print("\n========================================")
-
-if inventory.get_products():
-    print("\ninventory.json found.")
-    print("Inventory loaded successfully.\n")
-else:
-    print("\ninventory.json not found.")
-    print("Starting with an empty inventory.\n")
-
-while True:
-    print("\n----------- MENU -----------")
-    print("1. Display All Products")
-    print("2. Add Product")
-    print("3. Update Stock")
-    print("4. Search Product")
-    print("5. Save Inventory")
-    print("6. Exit")
-    
-    choice = input("Enter option: ").strip()
-
-    if choice == "1":
-        inventory.display_all()
-
-    elif choice == "2":
-        print("\nAdd New Product")
-        #Input 1: Get Product ID - must be number
-        while True:
-            try:
-                raw_id = input("Product ID: ").strip()
-                product_id = raw_id.lstrip("Pp")
-                if not product_id:  # Check if empty
-                    print("Invalid ID. Please enter a valid product ID.")
-                    continue
-                if not product_id.isdigit(): # Check if number
-                    print("Invalid ID. ID must contain only numbers (0-9)")
-                    continue
-                break
-            except:
-                print("Invalid input. Please enter a valid product ID.")
-        product_id = raw_id.lstrip("Pp")
-
-        #Input 2: Get Product Name
-        product_name = input("Product Name: ").strip()
-
-
-        #Input 3: Get Price - must be number, no negative
-        while True:
-            try:
-                price = float(input("Price: ").strip())
-                if price < 0:
-                    print("Price cannot be negative. Please enter a valid price.")
-                    continue
-                break
-            except ValueError:
-                print("Invalid input. Please enter a valid price (e.g., 9.99)")
-                
-        #Input 4: Get Stock Quantity - must be number, check 500 limit
-        while True:
-            qty_input = input("Stock Quantity: ").strip()
-            
-            if qty_input.lower() == "quit":
-                print("Cancelled.")
-                break
-            
-            if not qty_input.isdigit():
-                print("Invalid input. Quantity must be a positive number.")
-                continue
-            
-            valid_quantity = int(qty_input)
-            
-            if valid_quantity <= 0:
-                print("Quantity must be greater than 0.")
-                continue
-            
-            if valid_quantity > 500:
-                print(f"Quantity cannot exceed 500. You entered: {valid_quantity}")
-                continue
-            
-            # Check if adding this quantity exceeds total 500 limit
-            current_total = inventory.get_total_stock()
-            new_total = current_total + valid_quantity
-            
-            if new_total > 500:
-                print(f"Cannot add {valid_quantity} units.")
-                print(f"Current stock: {current_total} | Max allowed: 500 | Available space: {500 - current_total}")
-                continue
-            
-            # All valid! Add product
-            inventory.add_product(product_id, product_name, price, valid_quantity)
-            print(f"\nProduct added successfully!")
-            break
-
-    elif choice == "3":
-        print("\nUpdate Stock")
-        search_term = input("Enter Product ID or Name: ").strip()
-        
-        # Find the product first
-        found_items = inventory.search_product_by_term(search_term)
-        
-        if found_items:
-            product = found_items[0]  # Use first match
-            print("\nProduct Found:")
-            product.display_information()
-            
-            # Prompt for new quantity
-            raw_qty = input("\nNew Stock Quantity: ").strip()
-            valid_quantity = get_valid_input(raw_qty)
-            
-            if valid_quantity != "quit":
-                current_total = inventory.get_total_stock()
-                old_quantity = product.get_quantity()
-                new_total = current_total - old_quantity + valid_quantity
-                
-                if new_total <= 500:
-                    inventory.update_product_stock(search_term, valid_quantity)
-                    print("\nStock updated successfully!")
-                else:
-                    print(f"Current stock (excl. this product): {current_total - old_quantity} | New quantity: {valid_quantity} | Total would be: {new_total} | Limit: 500")
-        else:
-            print("Product not found.")
-            
-    elif choice == "4":
-        search_term = input("Search Product ID: ").strip()
-        found_items = inventory.search_product_by_term(search_term)
-        
-        if found_items:
-            print("\nProduct Found")
-            print("\n------------------------------------------------")
-            for product in found_items:
-                product.display_information()
-            print("------------------------------------------------\n")
-        else:
-            print("Product not found.\n")
-        
-    elif choice == "5":
-        save_product_objects_to_json(file_name, inventory)
-        print("\nSaving inventory...")
-        print(f"Inventory saved successfully to {file_name}\n")
-
-    elif choice == "6":
-        save_product_objects_to_json(file_name, inventory) 
-        print("\nSaving inventory before exit...")
-        print("Inventory saved successfully.\n")
-        print("Thank you for using Inventory Management System.")
-        print("Program terminated.")
-        break
-
-    else:
-        print("Invalid choice. Please select from 1 to 6.")
+if __name__ == "__main__":
+    program = MainProgram(file_name)
+    program.run()
 
 #Eugene Repo URL: https://github.com/Eugene2603188/Lab6
 
