@@ -18,7 +18,14 @@ class Product:
         self.__quantity = new_quantity
     
     def display_information(self):
-        """Display this product's information."""
+        """Display product in multi-line format (for search)."""
+        print(f"ID: P{self.__product_id}")
+        print(f"Name: {self.__name}")
+        print(f"Price: ${self.__price:.2f}")
+        print(f"Stock: {self.__quantity}")
+
+    def display_single_line(self):
+        """Display product in single-line format (for inventory list)."""
         print(f"ID: P{self.__product_id} | Name: {self.__name} | Price: ${self.__price:.2f} | Stock: {self.__quantity}")
     
     # Getters (to read private attributes from outside the class)
@@ -75,12 +82,12 @@ class Inventory:
         return False
     
     def display_all(self):
-        """Display all products in the inventory."""
+        """Display all products in single-line format."""
         if not self.__products:
             print("Inventory is empty.")
         else:
             for product in self.__products:
-                product.display_information()
+                product.display_single_line()
     
     def get_products(self):
         """Return the list of all products."""
@@ -117,7 +124,10 @@ class MainProgram:
         print("6. Exit")
 
     def handle_display_all(self):
+        print("\nCurrent Inventory")
+        print("------------------------------------------------")
         self.inventory.display_all()
+        print("------------------------------------------------")
 
     def handle_add_product(self):
         print("\nAdd New Product")
@@ -127,14 +137,33 @@ class MainProgram:
             try:
                 raw_id = input("Product ID: ").strip()
                 product_id = raw_id.lstrip("Pp")
-                
+
                 if not product_id:
                     print("Invalid ID. Please enter a valid product ID.")
                     continue
-                
+
                 if not product_id.isdigit():
                     print("Invalid ID. ID must contain only numbers (0-9)")
                     continue
+
+                # CHECK IF ID ALREADY EXISTS
+                existing_products = self.inventory.search_product_by_term(product_id)
+                if existing_products:
+                    product = existing_products[0]
+                    print(f"\nP{product_id} already added to cart.")
+                    print(f"Name: {product.get_name()} | Price: ${product.get_price():.2f} | Current Stock: {product.get_quantity()}")
+                    
+                    # VALIDATE YES/NO ONLY
+                    while True:
+                        response = input("Do you want to continue adding more? (yes/no): ").strip().lower()
+                        if response in ["yes", "no"]:
+                            break
+                        else:
+                            print("Invalid input. Please enter 'yes' or 'no'.")
+                    
+                    if response == "no":
+                        print("Cancelled.")
+                        return
                 
                 break
             except:
@@ -185,7 +214,7 @@ class MainProgram:
                 continue
 
             self.inventory.add_product(product_id, product_name, price, valid_quantity)
-            print("Product added successfully!")
+            print("\nProduct added successfully!")
             break
 
     def handle_update_stock(self):
@@ -228,7 +257,7 @@ class MainProgram:
                     print(f"Current stock (excl. this product): {current_total - old_quantity} | New quantity: {valid_quantity} | Total would be: {new_total} | Limit: 500")
 
         else:
-            print("Product not found.")
+            print("\nProduct not found.")
 
     def handle_search_product(self):
         search_term = input("Search Product ID: ").strip()
@@ -253,7 +282,7 @@ class MainProgram:
 
         while True:
             self.display_menu()
-            choice = input("Enter option: ").strip()
+            choice = input("\nEnter option: ").strip()
 
             if choice == "1":
                 self.handle_display_all()
