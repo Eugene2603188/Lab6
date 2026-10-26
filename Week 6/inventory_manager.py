@@ -60,6 +60,18 @@ class Inventory:
                 found_items.append(product)
         
         return found_items
+
+    def update_product_stock(self, search_term, new_quantity):
+        """Update stock for a product by ID or name. Returns True if successful."""
+        clean_term = search_term.lstrip("Pp").strip()
+        
+        for product in self.__products:
+            # Match by ID or name (case-insensitive)
+            if str(product.get_id()) == clean_term or clean_term.lower() in product.get_name().lower():
+                product.update_stock(new_quantity)
+                return True
+        
+        return False
     
     def display_all(self):
         """Display all products in the inventory."""
@@ -105,25 +117,6 @@ def get_next_id(history_list):
     else:
         return 1001
 
-#---- ALL DATA MANIPULATION FUNCTIONS -----
-#Data Manipulation - update_stock()
-def update_stock(inventory, search_term, new_quantity):
-    found = False
-
-    # Strip 'P' or 'p' if user inputs "P1001" instead of "1001"
-    clean_term = search_term.lstrip("Pp").strip()
-    
-    for item in inventory:
-        # Check if search_term matches the product name (case-insensitive) or product ID
-        if str(item["id"]) == str(clean_term) or item["name"].lower() == str(clean_term).lower():
-            item["quantity"] = new_quantity
-            found = True
-            break
-            
-    if not found:
-        print(f"Product '{search_term}' not found in inventory.")
-
-#---- ALL DATA PERSISTENCE FUNCTIONS -----
 #Reads the JSON file into dict
 def read_json(file_name):
     try:
@@ -201,36 +194,25 @@ while True:
 
     elif choice == "3":
         print("\nUpdate Stock")
-        search_term = input("Enter Product ID: ").strip()
-
-        #Remove 'P' or 'p' prefix if user inputs "P1001" instead of "1001"
-        clean_term = search_term.lstrip("Pp").strip()
+        search_term = input("Enter Product ID or Name: ").strip()
         
-        found_product = None
-        valid_quantity = None
-
-        for item in history:
-            if str(item["id"]) == clean_term:
-                found_product = item
-                break
-
-        if found_product:
+        # Find the product first
+        found_items = inventory.search_product_by_term(search_term)
+        
+        if found_items:
+            product = found_items[0]  # Use first match
             print("\nProduct Found:")
-            print(f"Name: {found_product['name']}")
-            print(f"Current Stock: {found_product['quantity']}")
-
+            product.display_information()
+            
             # Prompt for new quantity
             raw_qty = input("\nNew Stock Quantity: ").strip()
             valid_quantity = get_valid_input(raw_qty)
-
+            
             if valid_quantity != "quit":
-                found_product["quantity"] = valid_quantity
+                inventory.update_product_stock(search_term, valid_quantity)
                 print("\nStock updated successfully!")
         else:
             print("Product not found.")
-        
-        if valid_quantity != "quit":
-            update_stock(history, search_term, valid_quantity)
             
     elif choice == "4":
         search_term = input("Search Product ID: ").strip()
