@@ -49,11 +49,17 @@ class Inventory:
         self.__products.append(product)
         print("\nProduct added successfully")
     
-    def search_product(self, product_id):
+    def search_product_by_term(self, search_term):
+        """Search for products by ID or name. Returns list of matching products."""
+        found_items = []
+        clean_term = search_term.lstrip("Pp").strip()
+        
         for product in self.__products:
-            if product.get_id() == product_id:
-                return product
-        return None
+            # Match by ID or name (case-insensitive)
+            if str(product.get_id()) == clean_term or clean_term.lower() in product.get_name().lower():
+                found_items.append(product)
+        
+        return found_items
     
     def display_all(self):
         """Display all products in the inventory."""
@@ -228,8 +234,17 @@ while True:
             
     elif choice == "4":
         search_term = input("Search Product ID: ").strip()
-        search_product(history, search_term)
-    
+        found_items = inventory.search_product_by_term(search_term)
+        
+        if found_items:
+            print("\nProduct Found")
+            print("\n------------------------------------------------")
+            for product in found_items:
+                product.display_information()
+            print("------------------------------------------------\n")
+        else:
+            print("Product not found.\n")
+        
     elif choice == "5":
         save_product_objects_to_json(file_name, inventory)
         print("\nSaving inventory...")
